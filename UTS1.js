@@ -1,6 +1,6 @@
 // =================================================================
 // FILE: UTS1.js
-// Implementasi OOP JavaScript untuk Sistem Cuti Karyawan (Interaktif Minimalis)
+// Sistem Cuti Karyawan 
 // =================================================================
 
 const readline = require('readline');
@@ -197,3 +197,4 @@ async function main() {
 }
 
 main();
+
