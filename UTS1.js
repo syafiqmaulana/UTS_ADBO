@@ -1,8 +1,3 @@
-// =================================================================
-// FILE UTAMA: AplikasiCuti_OOP.js
-// Implementasi OOP JavaScript untuk Sistem Cuti Karyawan
-// =================================================================
-
 /**
  * Class Karyawan
  * Mewakili entitas Karyawan dan melacak kuota cuti mereka.
@@ -199,4 +194,5 @@ function main() {
 }
 
 // Menjalankan fungsi utama
+
 main();
