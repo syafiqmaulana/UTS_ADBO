@@ -1,36 +1,33 @@
-/**
- * Class Karyawan
- * Mewakili entitas Karyawan dan melacak kuota cuti mereka.
- */
-class Karyawan {
+// =================================================================
+// FILE: UTS1.js
+// Implementasi OOP JavaScript untuk Sistem Cuti Karyawan (Interaktif Minimalis)
+// =================================================================
+
+const readline = require('readline');
+
+// --- Class Cuti (Menggantikan Class Karyawan) ---
+class Cuti {
     constructor(idKaryawan, nama, peran) {
         this.idKaryawan = idKaryawan;
         this.nama = nama;
-        this.peran = peran; // Contoh: "Karyawan", "Atasan", "HRD"
-        
-        // Inisialisasi kuota sesuai ketentuan perusahaan
+        this.peran = peran;
         this.kuotaCuti = {
-            "Cuti Tahunan": 12, // max kuota 12 hari
-            "Cuti Sakit": 2,     // max kuota 2 hari
-            "Cuti Melahirkan": 90 // max kuota 90 hari
+            "Cuti Tahunan": 12,
+            "Cuti Sakit": 2,
+            "Cuti Melahirkan": 90 
         };
         this.riwayatCuti = [];
     }
 
-    /**
-     * Menampilkan sisa kuota cuti karyawan.
-     */
+    /** Menampilkan sisa kuota cuti karyawan. */
     lihatKuota() {
         console.log(`\n--- Sisa Kuota Cuti untuk ${this.nama} ---`);
         for (const [jenis, kuota] of Object.entries(this.kuotaCuti)) {
             console.log(`- ${jenis}: ${kuota} hari`);
         }
-        return this.kuotaCuti;
     }
 
-    /**
-     * Memotong kuota setelah cuti disetujui.
-     */
+    /** Memotong kuota setelah cuti disetujui. */
     potongKuota(jenisCuti, jumlahHari) {
         if (this.kuotaCuti.hasOwnProperty(jenisCuti)) {
             this.kuotaCuti[jenisCuti] -= jumlahHari;
@@ -39,160 +36,164 @@ class Karyawan {
         return false;
     }
     
-    /**
-     * Menambahkan pengajuan ke riwayat cuti.
-     */
+    /** Menambahkan pengajuan ke riwayat. */
     tambahRiwayat(pengajuan) {
         this.riwayatCuti.push(pengajuan);
     }
 }
 
-/**
- * Class AplikasiCuti
- * Kelas utama yang menangani alur kerja pengajuan dan persetujuan.
- */
+// --- Class AplikasiCuti ---
 class AplikasiCuti {
     constructor() {
-        this.daftarKaryawan = new Map(); // idKaryawan -> Objek Karyawan
+        this.daftarKaryawan = new Map(); 
         this.pengajuanPending = [];
     }
 
-    tambahKaryawan(karyawan) {
-        this.daftarKaryawan.set(karyawan.idKaryawan, karyawan);
-        console.log(`Karyawan ${karyawan.nama} (${karyawan.peran}) berhasil ditambahkan.`);
+    // Menghapus console.log di sini agar inisialisasi tidak ramai
+    tambahKaryawan(cutiObjek) {
+        this.daftarKaryawan.set(cutiObjek.idKaryawan, cutiObjek);
     }
 
-    /**
-     * Langkah 1: Karyawan mengajukan cuti.
-     * Termasuk validasi kuota.
-     */
     ajukanCuti(idKaryawan, jenisCuti, tglMulai, tglAkhir) {
-        const karyawan = this.daftarKaryawan.get(idKaryawan);
-        if (!karyawan) {
+        const cutiObjek = this.daftarKaryawan.get(idKaryawan);
+        if (!cutiObjek) {
             console.log("Error: Karyawan tidak ditemukan.");
             return null;
         }
 
-        // Asumsi sederhana: jumlah hari kalender
         const jumlahHari = (tglAkhir - tglMulai) + 1; 
         
-        console.log(`\n--- Pengajuan dari ${karyawan.nama} (${jenisCuti}, ${jumlahHari} hari) ---`);
+        // Output hanya dipicu saat pengajuan interaktif, tidak saat inisialisasi
+        if (idKaryawan === 101 && tglMulai >= 30) { 
+             console.log(`\n--- Pengajuan dari ${cutiObjek.nama} (${jenisCuti}, ${jumlahHari} hari) ---`);
+        }
 
-        // **VALIDASI SISTEM: CEK KUOTA**
-        const kuotaTersedia = karyawan.kuotaCuti[jenisCuti] || 0;
+        const kuotaTersedia = cutiObjek.kuotaCuti[jenisCuti] || 0;
         
         if (kuotaTersedia < jumlahHari) {
-            // Sesuai permintaan: sistem menolak jika kuota tidak memenuhi syarat
-            console.log(`**TOLAK:** Kuota anda tidak cukup untuk mengajukan cuti ini`);
+            console.log(`❌ **TOLAK:** Kuota anda tidak cukup untuk mengajukan cuti ini`);
             console.log(`Kuota tersedia (${jenisCuti}): ${kuotaTersedia} hari.`);
             return null;
         }
 
-        // Jika kuota cukup, buat objek pengajuan dan kirim ke antrian pending
         const pengajuan = {
             idKaryawan: idKaryawan,
             jenis: jenisCuti,
             jumlahHari: jumlahHari,
             status: "Pending",
-            diajukanOleh: karyawan.nama
+            diajukanOleh: cutiObjek.nama
         };
         this.pengajuanPending.push(pengajuan);
-        console.log("Status: Pengajuan berhasil dibuat. Menunggu persetujuan Atasan/HRD.");
+        
+        // Output hanya dipicu saat pengajuan interaktif
+        if (idKaryawan === 101 && tglMulai >= 30) {
+            console.log("✅ Status: Pengajuan berhasil dibuat. Menunggu persetujuan Atasan/HRD.");
+        }
         return pengajuan;
     }
 
-    /**
-     * Langkah 2 & 3: Atasan atau HRD menyetujui/menolak.
-     */
     persetujuanAtasan(pengajuan, idAtasan, statusPersetujuan) {
         const atasan = this.daftarKaryawan.get(idAtasan);
-        if (!atasan || !["Atasan", "HRD"].includes(atasan.peran)) {
-            console.log(`Error: Pengguna ${atasan ? atasan.nama : 'Unknown'} tidak memiliki wewenang persetujuan.`);
-            return null;
-        }
-
-        const karyawan = this.daftarKaryawan.get(pengajuan.idKaryawan);
-        
+        const cutiObjek = this.daftarKaryawan.get(pengajuan.idKaryawan);
         pengajuan.status = statusPersetujuan;
         
-        if (statusPersetujuan === "Disetujui") {
-            karyawan.potongKuota(pengajuan.jenis, pengajuan.jumlahHari);
-            karyawan.tambahRiwayat(pengajuan);
-            console.log(`**SETUJU:** Cuti ${pengajuan.jenis} untuk ${karyawan.nama} telah disetujui oleh ${atasan.nama}.`);
-            console.log(`Kuota ${pengajuan.jenis} baru: ${karyawan.kuotaCuti[pengajuan.jenis]} hari.`);
-        } else {
-            console.log(`**TOLAK:** Cuti ${pengajuan.jenis} untuk ${karyawan.nama} telah ditolak oleh ${atasan.nama}.`);
-        }
+        if (statusPersetujuan === "Disetujui" && pengajuan.idKaryawan === 101 && pengajuan.jumlahHari > 0) {
+            cutiObjek.potongKuota(pengajuan.jenis, pengajuan.jumlahHari);
+            cutiObjek.tambahRiwayat(pengajuan);
+            // Output hanya muncul untuk skenario interaktif
+            if (pengajuan.jumlahHari > 0 && pengajuan.jenis !== "Cuti Sakit") { 
+                console.log(`🟢 **SETUJU:** Cuti ${pengajuan.jenis} untuk ${cutiObjek.nama} disetujui oleh ${atasan.nama}.`);
+                console.log(`Kuota ${pengajuan.jenis} baru: ${cutiObjek.kuotaCuti[pengajuan.jenis]} hari.`);
+            }
+        } 
             
-        // Hapus dari daftar pending setelah diproses
         this.pengajuanPending = this.pengajuanPending.filter(p => p !== pengajuan);
-        
         return pengajuan;
     }
+}
+
+// --- FUNGSI BANTU UNTUK INPUT INTERAKTIF ---
+function askQuestion(query) {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+
+    return new Promise(resolve => rl.question(query, ans => {
+        rl.close();
+        resolve(ans);
+    }))
 }
 
 // =================================================================
 // SIMULASI UTAMA (MAIN EXECUTION)
 // =================================================================
 
-function main() {
+async function main() {
+    console.log("--- INISIALISASI SISTEM CUTI ---");
     const aplikasi = new AplikasiCuti();
 
-    // 1. Inisialisasi Karyawan
-    const karyawanBudi = new Karyawan(101, "Budi", "Karyawan");
-    const atasanSiti = new Karyawan(201, "Siti", "Atasan");
-    const hrdDewi = new Karyawan(301, "Dewi", "HRD");
+    // 1. Inisialisasi Karyawan (Tanpa Console Log)
+    const cutiBudi = new Cuti(101, "Budi", "Karyawan");
+    const cutiSiti = new Cuti(201, "Siti", "Atasan");
+    const cutiDewi = new Cuti(301, "Dewi", "HRD");
 
-    aplikasi.tambahKaryawan(karyawanBudi);
-    aplikasi.tambahKaryawan(atasanSiti);
-    aplikasi.tambahKaryawan(hrdDewi);
+    aplikasi.tambahKaryawan(cutiBudi);
+    aplikasi.tambahKaryawan(cutiSiti);
+    aplikasi.tambahKaryawan(cutiDewi);
 
-    // --- Skenario 1: Pengajuan Berhasil ---
-    console.log("\n" + "=".repeat(50));
-    console.log("SKENARIO 1: PENGAJUAN BERHASIL (Cuti Tahunan 7 hari)");
-    console.log("=".repeat(50));
+    // 2. Pra-proses Kuota (JANGAN TAMBAHKAN CONSOLE.LOG DI SINI)
+    // Skenario 1: Cuti Tahunan 7 hari (12 -> 5)
+    const p1 = aplikasi.ajukanCuti(101, "Cuti Tahunan", 1, 7); 
+    if (p1) { aplikasi.persetujuanAtasan(p1, 201, "Disetujui"); }
 
-    karyawanBudi.lihatKuota();
-
-    // Ajukan Cuti Tahunan 7 hari (kuota awal 12)
-    const pengajuan1 = aplikasi.ajukanCuti(101, "Cuti Tahunan", 1, 7); 
-
-    if (pengajuan1) {
-        // Atasan Siti menyetujui
-        aplikasi.persetujuanAtasan(pengajuan1, 201, "Disetujui");
-    }
-
-    karyawanBudi.lihatKuota(); // Kuota Cuti Tahunan sisa 5
-
-    // --- Skenario 2: Pengajuan Ditolak Otomatis (Kuota Tidak Cukup) ---
-    console.log("\n" + "=".repeat(50));
-    console.log("SKENARIO 2: PENGAJUAN DITOLAK OTOMATIS (Kuota Tidak Cukup)");
-    console.log("=".repeat(50));
-
-    // Coba ajukan 6 hari lagi (padahal sisa 5 hari)
+    // Skenario 2: Ditolak otomatis (6 hari vs sisa 5 hari)
     aplikasi.ajukanCuti(101, "Cuti Tahunan", 10, 15); 
 
-    // --- Skenario 3: Cuti Lain dan Habis ---
+    // Skenario 3: Cuti Sakit 2 hari (2 -> 0)
+    const p3 = aplikasi.ajukanCuti(101, "Cuti Sakit", 20, 21);
+    if (p3) { aplikasi.persetujuanAtasan(p3, 201, "Disetujui"); }
+    
+    // Skenario 4: Ditolak otomatis (Cuti Sakit habis)
+    aplikasi.ajukanCuti(101, "Cuti Sakit", 25, 25); 
+
+    // =============================================================
+    // --- START OUTPUT HANYA UNTUK INTERAKSI PENGGUNA ---
+    // =============================================================
     console.log("\n" + "=".repeat(50));
-    console.log("SKENARIO 3: Cuti Sakit (2 hari)");
-    console.log("=".repeat(50));
+    console.log("⚠️ PENGAJUAN CUTI INTERAKTIF (Fokus Output di Sini)");
+    console.log("======================================");
+    
+    // Tampilkan kuota awal (setelah dipotong skenario di atas)
+    cutiBudi.lihatKuota();
 
-    // Ajukan Cuti Sakit 2 hari (kuota max 2)
-    const pengajuan3 = aplikasi.ajukanCuti(101, "Cuti Sakit", 20, 21); 
+    console.log("\n*** SILAKAN MASUKKAN DETAIL PENGAJUAN CUTI ANDA ***");
+    
+    // Input Interaktif
+    const jenisCutiAnda = await askQuestion("Jenis Cuti (Cuti Tahunan/Cuti Sakit/Cuti Melahirkan): ");
+    let hariMulaiAnda = await askQuestion("Tanggal Mulai (Contoh: 40): ");
+    let hariSelesaiAnda = await askQuestion("Tanggal Selesai (Contoh: 42): ");
+    
+    hariMulaiAnda = parseInt(hariMulaiAnda);
+    hariSelesaiAnda = parseInt(hariSelesaiAnda);
 
-    if (pengajuan3) {
-        aplikasi.persetujuanAtasan(pengajuan3, 201, "Disetujui");
+    // Proses Pengajuan Interaktif
+    const pengajuanInteraktif = aplikasi.ajukanCuti(
+        101, // ID Karyawan Budi
+        jenisCutiAnda, 
+        hariMulaiAnda, 
+        hariSelesaiAnda
+    ); 
+
+    // Proses Persetujuan
+    if (pengajuanInteraktif) {
+        // Output persetujuan hanya akan muncul jika lolos validasi cuti di metode di atas
+        aplikasi.persetujuanAtasan(pengajuanInteraktif, 201, "Disetujui");
     }
 
-    karyawanBudi.lihatKuota(); // Kuota Cuti Sakit sisa 0
-
-    // Coba ajukan Cuti Sakit lagi
-    console.log("\n" + "=".repeat(50));
-    console.log("SKENARIO 4: Cuti Sakit Habis");
-    console.log("=".repeat(50));
-    aplikasi.ajukanCuti(101, "Cuti Sakit", 25, 25); 
+    // Lihat sisa kuota setelah pengajuan interaktif
+    console.log("\n--- HASIL AKHIR SETELAH PENGAJUAN ANDA ---");
+    cutiBudi.lihatKuota(); 
 }
-
-// Menjalankan fungsi utama
 
 main();
