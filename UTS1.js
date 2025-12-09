@@ -5,7 +5,7 @@
 
 const readline = require('readline');
 
-// --- Class Cuti (Menggantikan Class Karyawan) ---
+
 class Cuti {
     constructor(idKaryawan, nama, peran) {
         this.idKaryawan = idKaryawan;
@@ -197,4 +197,5 @@ async function main() {
 }
 
 main();
+
 
